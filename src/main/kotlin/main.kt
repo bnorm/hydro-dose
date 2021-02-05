@@ -5,7 +5,7 @@ import kotlin.time.TimeSource
 fun main() {
     val mark = TimeSource.Monotonic.markNow()
     while (true) {
-        println(mark.elapsedNow())
+        println("Elapsed time: ${mark.elapsedNow()}")
         Thread.sleep(5_000)
     }
 }
