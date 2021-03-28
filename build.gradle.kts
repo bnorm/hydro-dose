@@ -1,7 +1,8 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    kotlin("jvm") version "1.4.21"
+    kotlin("jvm") version "1.4.31"
+    kotlin("plugin.serialization") version "1.4.31"
     application
     id("nebula.release") version "15.3.0"
 }
@@ -14,15 +15,26 @@ repositories {
 }
 
 dependencies {
-    implementation("org.slf4j:slf4j-api:2.0.0-alpha0")
-    implementation("org.slf4j:slf4j-simple:2.0.0-alpha0")
-    implementation("com.pi4j:pi4j-core:2.0-SNAPSHOT")
-    implementation("com.pi4j:pi4j-plugin-raspberrypi:2.0-SNAPSHOT")
-    implementation("com.pi4j:pi4j-plugin-pigpio:2.0-SNAPSHOT")
+    val ktorVersion = "1.5.2"
+    val slf4jVersion = "2.0.0-alpha0"
+    val pi4jVersion = "2.0-SNAPSHOT"
+
+    implementation("io.ktor:ktor-server-netty:$ktorVersion")
+    implementation("io.ktor:ktor-locations:$ktorVersion")
+    implementation("io.ktor:ktor-serialization:$ktorVersion")
+
+    implementation("org.slf4j:slf4j-api:$slf4jVersion")
+    implementation("org.slf4j:slf4j-simple:$slf4jVersion")
+
+    implementation("com.pi4j:pi4j-core:$pi4jVersion")
+    implementation("com.pi4j:pi4j-plugin-raspberrypi:$pi4jVersion")
+    implementation("com.pi4j:pi4j-plugin-pigpio:$pi4jVersion")
+
+    val junitVersion = "5.6.0"
 
     testImplementation(kotlin("test-junit5"))
-    testImplementation("org.junit.jupiter:junit-jupiter-api:5.6.0")
-    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.6.0")
+    testImplementation("org.junit.jupiter:junit-jupiter-api:$junitVersion")
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junitVersion")
 }
 
 tasks.test {
@@ -30,9 +42,9 @@ tasks.test {
 }
 
 tasks.withType<KotlinCompile> {
-    kotlinOptions.jvmTarget = "11"
+    kotlinOptions.jvmTarget = "1.8"
 }
 
 application {
-    mainClass.set("MainKt")
+    mainClass.set("io.ktor.server.netty.EngineMain")
 }
