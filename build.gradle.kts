@@ -16,19 +16,22 @@ repositories {
 
 dependencies {
     val ktorVersion = "1.5.2"
-    val slf4jVersion = "2.0.0-alpha0"
+    val slf4jVersion = "1.7.30"
     val pi4jVersion = "2.0-SNAPSHOT"
+    val log4jVersion = "2.14.1"
 
     implementation("io.ktor:ktor-server-netty:$ktorVersion")
     implementation("io.ktor:ktor-locations:$ktorVersion")
     implementation("io.ktor:ktor-serialization:$ktorVersion")
 
-    implementation("org.slf4j:slf4j-api:$slf4jVersion")
-    implementation("org.slf4j:slf4j-simple:$slf4jVersion")
-
     implementation("com.pi4j:pi4j-core:$pi4jVersion")
     implementation("com.pi4j:pi4j-plugin-raspberrypi:$pi4jVersion")
     implementation("com.pi4j:pi4j-plugin-pigpio:$pi4jVersion")
+
+    implementation("org.slf4j:slf4j-api:$slf4jVersion")
+    implementation("org.apache.logging.log4j:log4j-api:$log4jVersion")
+    runtimeOnly("org.apache.logging.log4j:log4j-slf4j-impl:$log4jVersion")
+    runtimeOnly("org.apache.logging.log4j:log4j-core:$log4jVersion")
 
     val junitVersion = "5.6.0"
 

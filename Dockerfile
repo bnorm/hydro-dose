@@ -1,22 +1,23 @@
 # build contianer
-FROM gradle:6.8.1-jdk11 AS build
-ENV GRADLE_OPTS="-Dorg.gradle.daemon=false -Dkotlin.incremental=false"
-ENV APP_HOME=/usr/app/
-WORKDIR $APP_HOME
-
-COPY build.gradle.kts settings.gradle.kts $APP_HOME
-RUN gradle --console=plain
-
-COPY . $APP_HOME
-RUN gradle --console=plain distTar
+FROM gcc as pigpio_builder
+# Follow the install guide from creator of pigpio, http://abyz.me.uk/rpi/pigpio/download.html
+RUN wget https://github.com/joan2937/pigpio/archive/master.zip \
+    && unzip master.zip \
+    && cd pigpio-master \
+    && make \
+    && make install
 
 # actual container
 FROM adoptopenjdk:11-jre-hotspot
+
+# Install pigpio
+COPY --from=pigpio_builder /usr/local /usr/local
+
 ENV APP_HOME=/usr/app/
 WORKDIR $APP_HOME
 
-COPY --from=build $APP_HOME/build/distributions/ .
+ADD build/distributions/ .
 RUN tar -xvf *.tar --strip 1
 
-#EXPOSE 8080
+EXPOSE 8080
 ENTRYPOINT ["bin/hydro-dose"]
