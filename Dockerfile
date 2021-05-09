@@ -12,6 +12,7 @@ FROM adoptopenjdk:11-jre-hotspot
 
 # Install pigpio
 COPY --from=pigpio_builder /usr/local /usr/local
+RUN ldconfig
 
 ENV APP_HOME=/usr/app/
 WORKDIR $APP_HOME
