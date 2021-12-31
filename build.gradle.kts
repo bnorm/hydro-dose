@@ -5,6 +5,7 @@ plugins {
     kotlin("plugin.serialization") version "1.6.0"
     application
     id("nebula.release") version "15.3.0"
+    id("com.squareup.sqldelight")
 }
 
 group = "com.bnorm.hydro.dose"
@@ -23,6 +24,9 @@ dependencies {
     implementation("io.ktor:ktor-server-netty:$ktorVersion")
     implementation("io.ktor:ktor-locations:$ktorVersion")
     implementation("io.ktor:ktor-serialization:$ktorVersion")
+
+    implementation("com.squareup.sqldelight:sqlite-driver:1.5.3")
+    implementation("com.squareup.sqldelight:coroutines-extensions-jvm:1.5.3")
 
     implementation("com.pi4j:pi4j-core:$pi4jVersion")
     implementation("com.pi4j:pi4j-plugin-raspberrypi:$pi4jVersion")
@@ -51,4 +55,14 @@ tasks.withType<KotlinCompile> {
 
 application {
     mainClass.set("io.ktor.server.netty.EngineMain")
+}
+
+sourceSets {
+    main { resources { srcDir("src/main/sqldelight") } }
+}
+
+sqldelight {
+    database("Database") {
+        packageName = "dev.bnorm.hydro.db"
+    }
 }

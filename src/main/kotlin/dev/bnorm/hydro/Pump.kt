@@ -13,7 +13,7 @@ interface Pump {
     fun on()
     fun off()
 
-    suspend fun dispense(milliliters: Int)
+    suspend fun dispense(milliliters: Double)
 
     enum class State {
         ON,
@@ -61,7 +61,7 @@ private class Pi4jPump(
         log.trace("Exit method=Pump::off id={}", id)
     }
 
-    override suspend fun dispense(milliliters: Int) {
+    override suspend fun dispense(milliliters: Double) {
         log.trace("Enter method=Pump::dispense milliliters={} id={}", milliliters, id)
         val milliseconds = milliliters / rate * 1000
         try {

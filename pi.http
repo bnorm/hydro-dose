@@ -9,7 +9,7 @@ GET http://192.168.86.158:8080/api/v1/pumps/1
 
 ### Dispense 10 milliliters from pump 1
 
-PUT http://192.168.86.158:8080/api/v1/pumps/4/dispense?amount=10
+PUT http://192.168.86.158:8080/api/v1/pumps/1/dispense?amount=10
 
 ### Get all sensors
 
@@ -18,3 +18,7 @@ GET http://192.168.86.158:8080/api/v1/sensors
 ### Read sensor 1
 
 PUT http://192.168.86.158:8080/api/v1/sensors/1/read
+
+### Dose out amounts for feed chart Gro week 1
+
+PUT http://192.168.86.158:8080/api/v1/feedChart/Grow/weeks/1/dose
