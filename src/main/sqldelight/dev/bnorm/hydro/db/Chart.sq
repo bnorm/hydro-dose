@@ -1,16 +1,16 @@
-CREATE TABLE feedChart (
-  name TEXT NOT NULL,
-  week INTEGER NOT NULL,
-  target_ec_low INTEGER NOT NULL,
-  target_ec_high INTEGER NOT NULL,
-  micro_ml REAL NOT NULL,
-  gro_ml REAL NOT NULL,
-  bloom_ml REAL NOT NULL
+CREATE TABLE chart (
+    name TEXT NOT NULL,
+    week INTEGER NOT NULL,
+    target_ec_low INTEGER NOT NULL,
+    target_ec_high INTEGER NOT NULL,
+    micro_ml REAL NOT NULL,
+    gro_ml REAL NOT NULL,
+    bloom_ml REAL NOT NULL
 );
 
-CREATE UNIQUE INDEX feedChart_name_week ON feedChart(name, week);
+CREATE UNIQUE INDEX chart__name_week ON chart(name, week);
 
-INSERT INTO feedChart (name, week, target_ec_low, target_ec_high, micro_ml, gro_ml, bloom_ml)
+INSERT INTO chart (name, week, target_ec_low, target_ec_high, micro_ml, gro_ml, bloom_ml)
 VALUES
     ("Grow", 1, 500, 600, 2.0, 2.0, 2.0),
     ("Grow", 2, 1000, 1200, 4.2, 3.8, 3.0),
@@ -28,5 +28,5 @@ VALUES
 
 selectByNameAndWeek:
 SELECT *
-FROM feedChart
+FROM chart
 WHERE name = ? AND week = ?;

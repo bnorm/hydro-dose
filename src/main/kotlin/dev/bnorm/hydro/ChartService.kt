@@ -1,16 +1,16 @@
 package dev.bnorm.hydro
 
-import dev.bnorm.hydro.db.FeedChartQueries
+import dev.bnorm.hydro.db.ChartQueries
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import org.apache.logging.log4j.LogManager
 
-class FeedChartService(
-    private val feedChartQueries: FeedChartQueries,
+class ChartService(
+    private val feedChartQueries: ChartQueries,
     private val sensorService: SensorService,
     private val pumpService: PumpService,
 ) {
-    private val log = LogManager.getLogger(FeedChartService::class.java)
+    private val log = LogManager.getLogger(ChartService::class.java)
 
     suspend fun dose(name: String, week: Long) {
         log.debug("Dosing for name={} week={}", name, week)

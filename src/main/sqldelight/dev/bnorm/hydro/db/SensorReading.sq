@@ -1,0 +1,18 @@
+import kotlinx.datetime.Instant;
+
+CREATE TABLE sensorReading (
+    sensor_id INTEGER AS Int NOT NULL,
+    value REAL NOT NULL,
+    timestamp INTEGER AS Instant NOT NULL
+);
+
+insert:
+INSERT INTO sensorReading
+VALUES ?;
+
+selectAll:
+SELECT *
+FROM sensorReading
+WHERE sensor_id = :sensorId
+    AND timestamp >= :after
+    AND timestamp < :before;

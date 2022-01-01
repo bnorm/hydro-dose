@@ -24,6 +24,7 @@ dependencies {
     implementation("io.ktor:ktor-server-netty:$ktorVersion")
     implementation("io.ktor:ktor-locations:$ktorVersion")
     implementation("io.ktor:ktor-serialization:$ktorVersion")
+    implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.3.1")
 
     implementation("com.squareup.sqldelight:sqlite-driver:1.5.3")
     implementation("com.squareup.sqldelight:coroutines-extensions-jvm:1.5.3")
