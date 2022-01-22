@@ -157,14 +157,16 @@ fun CoroutineScope.schedule(
     action: suspend () -> Unit,
 ) {
     launch {
-        var next = Clock.System.now()
-        while (true) {
-            action()
+        val start = Clock.System.now()
+        val truncated = (start.toEpochMilliseconds() / frequency.inWholeMilliseconds) * frequency.inWholeMilliseconds
+        var next = Instant.fromEpochMilliseconds(truncated)
 
-            while (next < Clock.System.now()) {
-                next += frequency
-            }
-            delay(Clock.System.now().until(next, DateTimeUnit.MILLISECOND))
+        while (true) {
+            val now = Clock.System.now()
+            while (next < now) next += frequency
+            delay(now.until(next, DateTimeUnit.MILLISECOND))
+
+            action()
         }
     }
 }
