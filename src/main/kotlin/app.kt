@@ -16,6 +16,7 @@ import io.ktor.locations.put
 import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.serialization.*
+import io.ktor.util.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
@@ -79,6 +80,22 @@ fun Application.app() {
 
     install(ContentNegotiation) {
         json()
+    }
+
+    install(DataConversion) {
+        convert<Instant> {
+            decode { values, _ ->
+                values.singleOrNull()?.let { Instant.parse(it) }
+            }
+
+            encode { value ->
+                when (value) {
+                    null -> listOf()
+                    is Instant -> listOf(value.toString())
+                    else -> throw DataConversionException("Cannot convert $value as Instant")
+                }
+            }
+        }
     }
 
     install(Locations)

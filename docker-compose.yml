@@ -1,12 +1,12 @@
 version: "3"
 
 services:
-  watchtower:
-    image: containrrr/watchtower
-    restart: always
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-    command: --interval 30
+#  watchtower:
+#    image: containrrr/watchtower
+#    restart: always
+#    volumes:
+#      - /var/run/docker.sock:/var/run/docker.sock
+#    command: --interval 30
 
   doser:
     image: ghcr.io/bnorm/hydro-dose:latest
