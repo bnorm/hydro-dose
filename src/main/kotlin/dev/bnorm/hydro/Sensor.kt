@@ -50,7 +50,7 @@ private class Pi4jSensor(
         if (copy[0].toInt() != 1) {
             throw IOException("code=" + copy[0].toString(16))
         } else {
-            return copy.decodeToString(startIndex = 1, endIndex = size - 1).toDouble()
+            return copy.decodeToString(startIndex = 1, endIndex = size).toDouble()
         }
     }
 
