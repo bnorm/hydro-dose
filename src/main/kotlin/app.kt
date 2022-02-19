@@ -22,6 +22,7 @@ import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.serialization.*
 import io.ktor.util.*
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
@@ -31,6 +32,7 @@ import kotlinx.datetime.Clock
 import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.Instant
 import kotlinx.datetime.until
+import org.apache.logging.log4j.LogManager
 import java.io.ByteArrayOutputStream
 import java.io.PrintStream
 import java.nio.file.Files
@@ -100,7 +102,15 @@ fun Application.app() {
     val chartService = ChartService(database.chartQueries, sensorService, pumpService)
     val sensorReadingService = SensorReadingService(sensorService, database.sensorReadingQueries)
 
-    scope.schedule(frequency = 1.minutes) { sensorReadingService.record() }
+    scope.schedule(name = "Record Sensors", frequency = 1.minutes) {
+        sensorReadingService.record()
+    }
+
+    scope.schedule(name = "Dose Active Chart", frequency = 4.hours) {
+        // Starts at hour 0 UTC - 6 PM CST
+        // 6 PM .. 10 PM .. 2 AM .. 6 AM .. 10 AM .. 2 PM ..
+        chartService.doseActive()
+    }
 
     install(ContentNegotiation) {
         json()
@@ -182,9 +192,11 @@ fun Application.app() {
 }
 
 fun CoroutineScope.schedule(
+    name: String,
     frequency: Duration,
     action: suspend () -> Unit,
 ) {
+    val log = LogManager.getLogger("dev.bnorm.hydro.scheduler")
     launch {
         val start = Clock.System.now()
         val truncated = (start.toEpochMilliseconds() / frequency.inWholeMilliseconds) * frequency.inWholeMilliseconds
@@ -193,9 +205,16 @@ fun CoroutineScope.schedule(
         while (true) {
             val now = Clock.System.now()
             while (next < now) next += frequency
+            log.debug("Waiting until {} to perform scheduled action {}", next, name)
             delay(now.until(next, DateTimeUnit.MILLISECOND))
 
-            action()
+            try {
+                log.debug("Performing scheduled action {}", name)
+                action()
+            } catch (t: Throwable) {
+                if (t is CancellationException) throw t
+                log.warn("Unable to perform scheduled action {} at {}", name, next, t)
+            }
         }
     }
 }
