@@ -1,8 +1,8 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    kotlin("jvm") version "1.6.0"
-    kotlin("plugin.serialization") version "1.6.0"
+    kotlin("jvm") version "1.6.10"
+    kotlin("plugin.serialization") version "1.6.10"
     application
     id("nebula.release") version "15.3.0"
     id("com.squareup.sqldelight")
@@ -12,13 +12,13 @@ group = "com.bnorm.hydro.dose"
 
 repositories {
     mavenCentral()
-    maven { setUrl("https://oss.sonatype.org/content/groups/public") }
 }
 
 dependencies {
     val ktorVersion = "1.6.7"
-    val slf4jVersion = "1.7.32"
+    val sqldelightVersion = "1.5.3"
     val pi4jVersion = "2.1.1"
+    val slf4jVersion = "1.7.36"
     val log4jVersion = "2.17.0"
 
     implementation("io.ktor:ktor-server-netty:$ktorVersion")
@@ -26,8 +26,8 @@ dependencies {
     implementation("io.ktor:ktor-serialization:$ktorVersion")
     implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.3.1")
 
-    implementation("com.squareup.sqldelight:sqlite-driver:1.5.3")
-    implementation("com.squareup.sqldelight:coroutines-extensions-jvm:1.5.3")
+    implementation("com.squareup.sqldelight:sqlite-driver:$sqldelightVersion")
+    implementation("com.squareup.sqldelight:coroutines-extensions-jvm:$sqldelightVersion")
 
     implementation("com.pi4j:pi4j-core:$pi4jVersion")
     implementation("com.pi4j:pi4j-plugin-raspberrypi:$pi4jVersion")
@@ -51,7 +51,10 @@ tasks.test {
 }
 
 tasks.withType<KotlinCompile> {
-    kotlinOptions.jvmTarget = "1.8"
+    kotlinOptions {
+        jvmTarget = "11"
+        freeCompilerArgs = freeCompilerArgs + "-opt-in=kotlin.RequiresOptIn"
+    }
 }
 
 application {
@@ -65,5 +68,7 @@ sourceSets {
 sqldelight {
     database("Database") {
         packageName = "dev.bnorm.hydro.db"
+        schemaOutputDirectory = file("src/main/sqldelight/databases")
+        verifyMigrations = true
     }
 }

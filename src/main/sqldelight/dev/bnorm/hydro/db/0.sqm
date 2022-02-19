@@ -1,0 +1,35 @@
+import kotlinx.datetime.Instant;
+
+CREATE TABLE chart (
+    name TEXT NOT NULL,
+    week INTEGER NOT NULL,
+    target_ec_low INTEGER NOT NULL,
+    target_ec_high INTEGER NOT NULL,
+    micro_ml REAL NOT NULL,
+    gro_ml REAL NOT NULL,
+    bloom_ml REAL NOT NULL
+);
+
+CREATE UNIQUE INDEX chart__name_week ON chart(name, week);
+
+INSERT INTO chart (name, week, target_ec_low, target_ec_high, micro_ml, gro_ml, bloom_ml)
+VALUES
+    ("Grow", 1, 500, 600, 2.0, 2.0, 2.0),
+    ("Grow", 2, 1000, 1200, 4.2, 3.8, 3.0),
+    ("Grow", 3, 1300, 1600, 5.6, 5.2, 3.8),
+    ("Grow", 4, 1600, 2000, 6.8, 6.4, 4.8),
+    ("Bloom", 1, 1600, 1900, 6.1, 5.3, 6.8),
+    ("Bloom", 2, 1600, 1900, 6.1, 5.3, 6.8),
+    ("Bloom", 3, 1600, 1900, 5.3, 5.3, 7.6),
+    ("Bloom", 4, 1600, 1900, 5.3, 5.3, 7.6),
+    ("Bloom", 5, 1600, 1900, 5.3, 5.3, 7.6),
+    ("Bloom", 6, 1000, 1300, 3.8, 3.8, 4.5),
+    ("Bloom", 7, 1000, 1300, 3.8, 3.8, 4.6),
+    ("Bloom", 8, 700, 900, 2.3, 2.3, 3.6)
+    ;
+
+CREATE TABLE sensorReading (
+    sensor_id INTEGER AS Int NOT NULL,
+    value REAL NOT NULL,
+    timestamp INTEGER AS Instant NOT NULL
+);

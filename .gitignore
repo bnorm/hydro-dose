@@ -5,3 +5,4 @@ build/
 # Idea
 .idea/
 *.iml
+.http/http-client.private.env.json
