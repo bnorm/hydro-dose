@@ -28,3 +28,10 @@ fun Context.PumpService(): PumpService {
         all = PumpType.values().map { Pump(it.id, it.address, it.rate) }
     )
 }
+
+fun FakePumpService(): PumpService {
+    // Hardcode known pumps
+    return PumpService(
+        all = PumpType.values().map { FakePump(it.id, it.rate) }
+    )
+}

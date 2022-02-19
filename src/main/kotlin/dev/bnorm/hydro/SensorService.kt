@@ -1,6 +1,7 @@
 package dev.bnorm.hydro
 
 import com.pi4j.context.Context
+import kotlin.random.Random
 
 class SensorService(
     val all: List<Sensor>
@@ -24,5 +25,23 @@ fun Context.SensorService(): SensorService {
     // Hardcode known sensors
     return SensorService(
         all = SensorType.values().map { Sensor(it.id, it.bus, it.device) }
+    )
+}
+
+fun FakeSensorService(): SensorService {
+    // Hardcode known sensors
+    return SensorService(
+        all = SensorType.values().map {
+            FakeSensor(
+                it.id, when (it) {
+                    SensorType.Ph -> {
+                        { Random.nextDouble(6.1, 6.2) }
+                    }
+                    SensorType.Ec -> {
+                        { Random.nextDouble(700.0, 701.0) }
+                    }
+                }
+            )
+        }
     )
 }

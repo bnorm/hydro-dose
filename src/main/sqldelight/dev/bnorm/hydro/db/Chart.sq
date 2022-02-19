@@ -5,7 +5,8 @@ CREATE TABLE chart (
     target_ec_high INTEGER NOT NULL,
     micro_ml REAL NOT NULL,
     gro_ml REAL NOT NULL,
-    bloom_ml REAL NOT NULL
+    bloom_ml REAL NOT NULL,
+    active INTEGER AS Boolean NOT NULL DEFAULT 0
 );
 
 CREATE UNIQUE INDEX chart__name_week ON chart(name, week);
@@ -23,10 +24,23 @@ VALUES
     ("Bloom", 5, 1600, 1900, 5.3, 5.3, 7.6),
     ("Bloom", 6, 1000, 1300, 3.8, 3.8, 4.5),
     ("Bloom", 7, 1000, 1300, 3.8, 3.8, 4.6),
-    ("Bloom", 8, 700, 900, 2.3, 2.3, 3.6)
-    ;
+    ("Bloom", 8, 700, 900, 2.3, 2.3, 3.6);
 
 selectByNameAndWeek:
 SELECT *
 FROM chart
-WHERE name = ? AND week = ?;
+WHERE name = :name AND week = :week;
+
+selectByActive:
+SELECT *
+FROM chart
+WHERE active = 1;
+
+activateByNameAndWeek {
+    UPDATE chart
+    SET active = 0;
+
+    UPDATE chart
+    SET active = 1
+    WHERE name = :name AND week = :week;
+}

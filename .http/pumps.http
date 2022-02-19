@@ -1,0 +1,12 @@
+
+### Pumps: get all pumps
+
+GET {{host}}/api/v1/pumps
+
+### Pumps: get pump 1
+
+GET {{host}}/api/v1/pumps/1
+
+### Pumps: dispense 1ml from pump 1
+
+#PUT {{host}}/api/v1/pumps/1/dispense?amount=1

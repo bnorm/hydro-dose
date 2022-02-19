@@ -1,0 +1,16 @@
+
+### Charts: get active
+
+GET {{host}}/api/v1/charts/active
+
+### Charts: dose active
+
+PUT {{host}}/api/v1/charts/active/dose
+
+### Charts: activate chart Grow:2
+
+PUT {{host}}/api/v1/charts/Grow/weeks/2/activate
+
+### Charts: dose chart Grow:1
+
+PUT {{host}}/api/v1/charst/Grow/weeks/1/dose

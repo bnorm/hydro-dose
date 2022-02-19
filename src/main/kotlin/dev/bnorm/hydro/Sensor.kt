@@ -56,3 +56,14 @@ private class Pi4jSensor(
 
     override fun toString(): String = name
 }
+
+class FakeSensor(
+    override val id: Int,
+    private val generator: () -> Double,
+) : Sensor {
+    override suspend fun read(): Double {
+        val reading = generator()
+        log.debug("response for {}: value={}", id, reading)
+        return reading
+    }
+}

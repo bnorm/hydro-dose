@@ -1,0 +1,17 @@
+
+### Sensors: get all sensors
+
+GET {{host}}/api/v1/sensors
+
+### Sensors: get sensor 1
+
+GET {{host}}/api/v1/sensors/1
+
+### Sensors: read sensor 1
+
+GET {{host}}/api/v1/sensors/1/read
+
+### Sensors: get readings for sensor 1
+
+GET {{host}}/api/v1/sensors/1/readings
+

@@ -13,16 +13,18 @@ fun createDatabase(filePath: String = ""): Database {
     val currentVer = sqlCursor.use { sqlCursor.getLong(0)!!.toInt() }
     if (currentVer == 0) {
         Database.Schema.create(driver)
-        driver.execute(null, "PRAGMA user_version = 1", 0)
-        log.debug("createDatabase: created tables, setVersion to 1")
+        val schemaVer = Database.Schema.version
+        driver.execute(null, "PRAGMA user_version = $schemaVer", 0)
+        log.debug("createDatabase: created tables, setVersion to {}", schemaVer)
     } else {
         val schemaVer = Database.Schema.version
+        log.debug("createDatabase: current={} schema={}", currentVer, schemaVer)
         if (schemaVer > currentVer) {
             Database.Schema.migrate(driver, currentVer, schemaVer)
             driver.execute(null, "PRAGMA user_version = $schemaVer", 0)
             log.debug("createDatabase: migrated from {} to {}", currentVer, schemaVer)
         } else {
-            log.debug("createDatabase")
+            log.debug("createDatabase: up-to-date at version {}", currentVer)
         }
     }
     return Database(driver, SensorReading.Adapter(object : ColumnAdapter<Instant, Long> {

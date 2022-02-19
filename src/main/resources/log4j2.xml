@@ -11,7 +11,7 @@
 
         <Logger name="com.pi4j" level="trace"/>
 
-        <Logger name="Application" level="trace"/>
+        <Logger name="Application" level="info"/>
 
         <Root level="warn">
             <AppenderRef ref="stdout"/>

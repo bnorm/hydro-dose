@@ -2,10 +2,15 @@
 
 import com.pi4j.Pi4J
 import com.pi4j.common.Descriptor
+import com.pi4j.context.Context
 import dev.bnorm.hydro.ChartService
+import dev.bnorm.hydro.FakePumpService
+import dev.bnorm.hydro.FakeSensorService
 import dev.bnorm.hydro.PumpService
 import dev.bnorm.hydro.SensorReadingService
 import dev.bnorm.hydro.SensorService
+import dev.bnorm.hydro.api.chartsApi
+import dev.bnorm.hydro.db.Database
 import dev.bnorm.hydro.db.createDatabase
 import dev.bnorm.hydro.dto.toDto
 import io.ktor.application.*
@@ -28,6 +33,8 @@ import kotlinx.datetime.Instant
 import kotlinx.datetime.until
 import java.io.ByteArrayOutputStream
 import java.io.PrintStream
+import java.nio.file.Files
+import java.nio.file.Paths
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.minutes
@@ -67,12 +74,29 @@ fun Application.app() {
     val scope = CoroutineScope(context = Dispatchers.Default)
     environment.monitor.subscribe(ApplicationStopping) { scope.cancel() }
 
-    val pi4j = Pi4J.newAutoContext()
-    environment.monitor.subscribe(ApplicationStopping) { pi4j.shutdown() }
+    val pi4j: Context?
+    val pumpService: PumpService
+    val sensorService: SensorService
+    val database: Database
 
-    val database = createDatabase("/app/data/app.sqlite")
-    val pumpService = pi4j.PumpService()
-    val sensorService = pi4j.SensorService()
+    if (System.getProperty("os.name") == "Mac OS X") {
+        pi4j = null
+
+        pumpService = FakePumpService()
+        sensorService = FakeSensorService()
+
+        Files.createDirectories(Paths.get("build/runtime"))
+        database = createDatabase("build/runtime/app.sqlite")
+    } else {
+        pi4j = Pi4J.newAutoContext()
+        environment.monitor.subscribe(ApplicationStopping) { pi4j.shutdown() }
+
+        pumpService = pi4j.PumpService()
+        sensorService = pi4j.SensorService()
+
+        database = createDatabase("/app/data/app.sqlite")
+    }
+
     val chartService = ChartService(database.chartQueries, sensorService, pumpService)
     val sensorReadingService = SensorReadingService(sensorService, database.sensorReadingQueries)
 
@@ -102,11 +126,16 @@ fun Application.app() {
 
     routing {
         route("/api/v1/") {
-            route("pi") {
-                get("context") {
-                    call.respondText(pi4j.describe().print())
+            chartsApi(chartService)
+
+            if (pi4j != null) {
+                route("pi") {
+                    get("context") {
+                        call.respondText(pi4j.describe().print())
+                    }
                 }
             }
+
             route("pumps") {
                 get {
                     val pumps = pumpService.all
