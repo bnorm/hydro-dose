@@ -3,6 +3,8 @@ package dev.bnorm.hydro
 import com.pi4j.context.Context
 import com.pi4j.io.i2c.I2C
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import org.apache.logging.log4j.LogManager
 import java.io.IOException
 
@@ -35,22 +37,25 @@ private class Pi4jSensor(
     private val name: String,
     override val id: Int,
 ) : Sensor {
+    private var mutex = Mutex()
     private val buffer = ByteArray(31)
 
     override suspend fun read(): Double {
-        i2c.write("r")
-        delay(900)
+        mutex.withLock {
+            i2c.write("r")
+            delay(900)
 
-        i2c.read(buffer)
-        val size = buffer.indexOf(0)
-        val copy = buffer.copyOf(size)
-        log.debug("response for {}: size={} hex={}",
-            id, size, copy.joinToString("") { it.toString(16).padStart(2, '0') })
+            i2c.read(buffer)
+            val size = buffer.indexOf(0)
+            val copy = buffer.copyOf(size)
+            log.debug("response for {}: size={} hex={}",
+                id, size, copy.joinToString("") { it.toString(16).padStart(2, '0') })
 
-        if (copy[0].toInt() != 1) {
-            throw IOException("code=" + copy[0].toString(16))
-        } else {
-            return copy.decodeToString(startIndex = 1, endIndex = size).toDouble()
+            if (copy[0].toInt() != 1) {
+                throw IOException("code=" + copy[0].toString(16))
+            } else {
+                return copy.decodeToString(startIndex = 1, endIndex = size).toDouble()
+            }
         }
     }
 
