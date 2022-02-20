@@ -1,0 +1,43 @@
+[versions]
+kotlin = "1.6.10"
+ktor = "1.6.7"
+sqldelight = "1.5.3"
+pi4j = "2.1.1"
+log4j = "2.17.0"
+junit = "5.8.2"
+
+[plugins]
+kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
+#sqldelight = { id = "com.squareup.sqldelight", version.ref = "sqldelight" }
+nebula-release = { id = "nebula.release", version = "15.3.0" }
+
+[libraries]
+ktor-server = { module = "io.ktor:ktor-server-netty", version.ref = "ktor" }
+ktor-locations = { module = "io.ktor:ktor-locations", version.ref = "ktor" }
+ktor-serialization = { module = "io.ktor:ktor-serialization", version.ref = "ktor" }
+
+sqldelight-driver = { module = "com.squareup.sqldelight:sqlite-driver", version.ref = "sqldelight" }
+sqldelight-coroutines = { module = "com.squareup.sqldelight:coroutines-extensions-jvm", version.ref = "sqldelight" }
+
+pi4j-core = { module = "com.pi4j:pi4j-core", version.ref = "pi4j" }
+pi4j-plugin-raspberrypi = { module = "com.pi4j:pi4j-plugin-raspberrypi", version.ref = "pi4j" }
+pi4j-plugin-pigpio = { module = "com.pi4j:pi4j-plugin-pigpio", version.ref = "pi4j" }
+pi4j-plugin-linuxfs = { module = "com.pi4j:pi4j-plugin-linuxfs", version.ref = "pi4j" }
+
+log4j-api = { module = "org.apache.logging.log4j:log4j-api", version.ref = "log4j" }
+log4j-slf4j = { module = "org.apache.logging.log4j:log4j-slf4j-impl", version.ref = "log4j" }
+log4j-core = { module = "org.apache.logging.log4j:log4j-core", version.ref = "log4j" }
+
+junit-api = { module = "org.junit.jupiter:junit-jupiter-api", version.ref = "junit" }
+junit-kotlin = { module = "org.jetbrains.kotlin:kotlin-test-junit5", version.ref = "kotlin" }
+junit-engine = { module = "org.junit.jupiter:junit-jupiter-engine", version.ref = "junit" }
+
+[bundles]
+ktor = ["ktor-server", "ktor-locations", "ktor-serialization"]
+sqldelight = ["sqldelight-driver", "sqldelight-coroutines"]
+pi4j = ["pi4j-core", "pi4j-plugin-raspberrypi", "pi4j-plugin-pigpio", "pi4j-plugin-linuxfs"]
+log4j-api = ["log4j-api"]
+log4j-runtime = ["log4j-core", "log4j-slf4j"]
+junit-api = ["junit-api", "junit-kotlin"]
+junit-runtime = ["junit-engine"]

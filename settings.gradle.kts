@@ -15,3 +15,5 @@ pluginManagement {
         }
     }
 }
+
+enableFeaturePreview("VERSION_CATALOGS")

@@ -1,10 +1,10 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    kotlin("jvm") version "1.6.10"
-    kotlin("plugin.serialization") version "1.6.10"
+    alias(libs.plugins.kotlin.jvm)
+    alias(libs.plugins.kotlin.serialization)
     application
-    id("nebula.release") version "15.3.0"
+    alias(libs.plugins.nebula.release)
     id("com.squareup.sqldelight")
 }
 
@@ -15,35 +15,18 @@ repositories {
 }
 
 dependencies {
-    val ktorVersion = "1.6.7"
-    val sqldelightVersion = "1.5.3"
-    val pi4jVersion = "2.1.1"
-    val slf4jVersion = "1.7.36"
-    val log4jVersion = "2.17.0"
-
-    implementation("io.ktor:ktor-server-netty:$ktorVersion")
-    implementation("io.ktor:ktor-locations:$ktorVersion")
-    implementation("io.ktor:ktor-serialization:$ktorVersion")
+    implementation(libs.bundles.ktor)
     implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.3.1")
 
-    implementation("com.squareup.sqldelight:sqlite-driver:$sqldelightVersion")
-    implementation("com.squareup.sqldelight:coroutines-extensions-jvm:$sqldelightVersion")
+    implementation(libs.bundles.sqldelight)
 
-    implementation("com.pi4j:pi4j-core:$pi4jVersion")
-    implementation("com.pi4j:pi4j-plugin-raspberrypi:$pi4jVersion")
-    implementation("com.pi4j:pi4j-plugin-pigpio:$pi4jVersion")
-    implementation("com.pi4j:pi4j-plugin-linuxfs:$pi4jVersion")
+    implementation(libs.bundles.pi4j)
 
-    implementation("org.slf4j:slf4j-api:$slf4jVersion")
-    implementation("org.apache.logging.log4j:log4j-api:$log4jVersion")
-    runtimeOnly("org.apache.logging.log4j:log4j-slf4j-impl:$log4jVersion")
-    runtimeOnly("org.apache.logging.log4j:log4j-core:$log4jVersion")
+    implementation(libs.bundles.log4j.api)
+    runtimeOnly(libs.bundles.log4j.runtime)
 
-    val junitVersion = "5.8.2"
-
-    testImplementation(kotlin("test-junit5"))
-    testImplementation("org.junit.jupiter:junit-jupiter-api:$junitVersion")
-    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junitVersion")
+    testImplementation(libs.bundles.junit.api)
+    testRuntimeOnly(libs.bundles.junit.runtime)
 }
 
 tasks.test {
