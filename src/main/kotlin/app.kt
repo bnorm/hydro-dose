@@ -10,9 +10,10 @@ import dev.bnorm.hydro.PumpService
 import dev.bnorm.hydro.SensorReadingService
 import dev.bnorm.hydro.SensorService
 import dev.bnorm.hydro.api.chartsApi
+import dev.bnorm.hydro.api.pumpsApi
+import dev.bnorm.hydro.api.sensorsApi
 import dev.bnorm.hydro.db.Database
 import dev.bnorm.hydro.db.createDatabase
-import dev.bnorm.hydro.dto.toDto
 import io.ktor.application.*
 import io.ktor.features.*
 import io.ktor.http.*
@@ -27,6 +28,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.datetime.Clock
 import kotlinx.datetime.DateTimeUnit
@@ -41,29 +43,6 @@ import kotlin.time.Duration
 import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.ExperimentalTime
-
-@Location("/{id}")
-data class ById(
-    val id: Int,
-)
-
-@Location("/{id}/dispense")
-data class Dispense(
-    val id: Int,
-    val amount: Int, // milliliters
-)
-
-@Location("/{id}/read")
-data class Read(
-    val id: Int,
-)
-
-@Location("/{id}/readings")
-data class QueryReadings(
-    val id: Int,
-    val before: Instant = Clock.System.now(),
-    val after: Instant = before - 2.hours,
-)
 
 @Location("/{name}/weeks/{week}/dose")
 data class DoseChart(
@@ -137,6 +116,8 @@ fun Application.app() {
     routing {
         route("/api/v1/") {
             chartsApi(chartService)
+            sensorsApi(sensorService, sensorReadingService)
+            pumpsApi(pumpService)
 
             if (pi4j != null) {
                 route("pi") {
@@ -146,41 +127,6 @@ fun Application.app() {
                 }
             }
 
-            route("pumps") {
-                get {
-                    val pumps = pumpService.all
-                    call.respond(pumps.map { it.toDto() })
-                }
-                get<ById> { (id) ->
-                    val pump = pumpService[id] ?: throw NotFoundException()
-                    call.respond(pump.toDto())
-                }
-                put<Dispense> { (id, amount) ->
-                    val pump = pumpService[id] ?: throw NotFoundException()
-                    pump.dispense(amount.toDouble())
-                    call.respond(pump.toDto())
-                }
-            }
-            route("sensors") {
-                get {
-                    val sensors = sensorService.all
-                    call.respond(sensors.map { it.toDto() })
-                }
-                get<ById> { (id) ->
-                    val sensor = sensorService[id] ?: throw NotFoundException()
-                    call.respond(sensor.toDto())
-                }
-                get<Read> { (id) ->
-                    val sensor = sensorService[id] ?: throw NotFoundException()
-                    val measurement = sensor.read()
-                    call.respond(measurement)
-                }
-                get<QueryReadings> { (id, before, after) ->
-                    val sensor = sensorService[id] ?: throw NotFoundException()
-                    val readings = sensorReadingService.findAll(sensor.id, after, before)
-                    call.respond(readings.map { it.toDto() })
-                }
-            }
             route("chart") {
                 put<DoseChart> { (name, week) ->
                     chartService.dose(name, week)
@@ -202,7 +148,7 @@ fun CoroutineScope.schedule(
         val truncated = (start.toEpochMilliseconds() / frequency.inWholeMilliseconds) * frequency.inWholeMilliseconds
         var next = Instant.fromEpochMilliseconds(truncated)
 
-        while (true) {
+        while (isActive) {
             val now = Clock.System.now()
             while (next < now) next += frequency
             log.debug("Waiting until {} to perform scheduled action {}", next, name)
