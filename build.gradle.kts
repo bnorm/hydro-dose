@@ -16,7 +16,8 @@ repositories {
 
 dependencies {
     implementation(libs.bundles.ktor)
-    implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.3.1")
+    implementation(libs.bundles.ktorclient)
+    implementation(libs.kotlinx.datetime)
 
     implementation(libs.bundles.sqldelight)
 

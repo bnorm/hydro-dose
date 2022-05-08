@@ -12,20 +12,22 @@ import dev.bnorm.hydro.SensorService
 import dev.bnorm.hydro.api.chartsApi
 import dev.bnorm.hydro.api.pumpsApi
 import dev.bnorm.hydro.api.sensorsApi
+import dev.bnorm.hydro.client.ElevatedClient
 import dev.bnorm.hydro.db.Database
 import dev.bnorm.hydro.db.createDatabase
-import io.ktor.application.*
-import io.ktor.features.*
 import io.ktor.http.*
-import io.ktor.locations.*
-import io.ktor.locations.put
-import io.ktor.response.*
-import io.ktor.routing.*
-import io.ktor.serialization.*
-import io.ktor.util.*
+import io.ktor.serialization.kotlinx.json.*
+import io.ktor.server.application.*
+import io.ktor.server.locations.*
+import io.ktor.server.locations.put
+import io.ktor.server.plugins.contentnegotiation.*
+import io.ktor.server.plugins.dataconversion.*
+import io.ktor.server.response.*
+import io.ktor.server.routing.*
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
@@ -52,8 +54,10 @@ data class DoseChart(
 
 @Suppress("unused") // application.conf
 fun Application.app() {
-    val scope = CoroutineScope(context = Dispatchers.Default)
+    val scope = CoroutineScope(context = SupervisorJob() + Dispatchers.Default)
     environment.monitor.subscribe(ApplicationStopping) { scope.cancel() }
+
+    val elevatedClient: ElevatedClient?
 
     val pi4j: Context?
     val pumpService: PumpService
@@ -61,6 +65,8 @@ fun Application.app() {
     val database: Database
 
     if (System.getProperty("os.name") == "Mac OS X") {
+        elevatedClient = null
+
         pi4j = null
 
         pumpService = FakePumpService()
@@ -69,6 +75,12 @@ fun Application.app() {
         Files.createDirectories(Paths.get("build/runtime"))
         database = createDatabase("build/runtime/app.sqlite")
     } else {
+        elevatedClient = ElevatedClient()
+        scope.schedule(name = "Device Authentication", frequency = 1.hours, immediate = true) {
+            // Immediately login and refresh authentication every hour
+            elevatedClient.authenticate()
+        }
+
         pi4j = Pi4J.newAutoContext()
         environment.monitor.subscribe(ApplicationStopping) { pi4j.shutdown() }
 
@@ -79,7 +91,7 @@ fun Application.app() {
     }
 
     val chartService = ChartService(database.chartQueries, sensorService, pumpService)
-    val sensorReadingService = SensorReadingService(sensorService, database.sensorReadingQueries)
+    val sensorReadingService = SensorReadingService(sensorService, database.sensorReadingQueries, elevatedClient)
 
     scope.schedule(name = "Record Sensors", frequency = 1.minutes) {
         sensorReadingService.record()
@@ -97,17 +109,8 @@ fun Application.app() {
 
     install(DataConversion) {
         convert<Instant> {
-            decode { values, _ ->
-                values.singleOrNull()?.let { Instant.parse(it) }
-            }
-
-            encode { value ->
-                when (value) {
-                    null -> listOf()
-                    is Instant -> listOf(value.toString())
-                    else -> throw DataConversionException("Cannot convert $value as Instant")
-                }
-            }
+            decode { Instant.parse(it.single()) }
+            encode { listOf(it.toString()) }
         }
     }
 
@@ -140,27 +143,36 @@ fun Application.app() {
 fun CoroutineScope.schedule(
     name: String,
     frequency: Duration,
+    immediate: Boolean = false,
     action: suspend () -> Unit,
 ) {
     val log = LogManager.getLogger("dev.bnorm.hydro.scheduler")
+
+    suspend fun perform(timestamp: Instant) {
+        try {
+            log.debug("Performing scheduled action {}", name)
+            action()
+        } catch (t: Throwable) {
+            if (t is CancellationException) throw t
+            log.warn("Unable to perform scheduled action {} at {}", name, timestamp, t)
+        }
+    }
+
     launch {
         val start = Clock.System.now()
         val truncated = (start.toEpochMilliseconds() / frequency.inWholeMilliseconds) * frequency.inWholeMilliseconds
         var next = Instant.fromEpochMilliseconds(truncated)
+
+        if (immediate) {
+            perform(start)
+        }
 
         while (isActive) {
             val now = Clock.System.now()
             while (next < now) next += frequency
             log.debug("Waiting until {} to perform scheduled action {}", next, name)
             delay(now.until(next, DateTimeUnit.MILLISECOND))
-
-            try {
-                log.debug("Performing scheduled action {}", name)
-                action()
-            } catch (t: Throwable) {
-                if (t is CancellationException) throw t
-                log.warn("Unable to perform scheduled action {} at {}", name, next, t)
-            }
+            perform(next)
         }
     }
 }

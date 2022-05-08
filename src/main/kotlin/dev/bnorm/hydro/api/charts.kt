@@ -4,11 +4,12 @@ package dev.bnorm.hydro.api
 
 import dev.bnorm.hydro.ChartService
 import dev.bnorm.hydro.dto.toDto
-import io.ktor.application.*
 import io.ktor.http.*
-import io.ktor.locations.*
-import io.ktor.response.*
-import io.ktor.routing.Route
+import io.ktor.server.application.*
+import io.ktor.server.locations.*
+import io.ktor.server.locations.put
+import io.ktor.server.response.*
+import io.ktor.server.routing.*
 
 @Location("/charts/{name}/weeks/{week}")
 data class Chart(

@@ -5,11 +5,11 @@ package dev.bnorm.hydro.api
 import dev.bnorm.hydro.SensorReadingService
 import dev.bnorm.hydro.SensorService
 import dev.bnorm.hydro.dto.toDto
-import io.ktor.application.*
-import io.ktor.features.*
-import io.ktor.locations.*
-import io.ktor.response.*
-import io.ktor.routing.*
+import io.ktor.server.application.*
+import io.ktor.server.locations.*
+import io.ktor.server.plugins.*
+import io.ktor.server.response.*
+import io.ktor.server.routing.*
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
 import kotlin.time.Duration.Companion.hours

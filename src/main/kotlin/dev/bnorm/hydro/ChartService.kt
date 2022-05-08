@@ -45,7 +45,7 @@ class ChartService(
                 val ph = sensorService[SensorType.Ph].read()
                 log.debug("pH reading={}", ph)
                 if (ph > 5.9) {
-                    pumpService[PumpType.PhDown].dispense(2.0)
+                    pumpService[PumpType.PhDown].dispense(1.0)
                 } else if (ph < 5.3) {
                     // TODO throw ph too low?
                 }

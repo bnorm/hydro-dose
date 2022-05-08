@@ -4,11 +4,12 @@ package dev.bnorm.hydro.api
 
 import dev.bnorm.hydro.PumpService
 import dev.bnorm.hydro.dto.toDto
-import io.ktor.application.*
-import io.ktor.features.*
-import io.ktor.locations.*
-import io.ktor.response.*
-import io.ktor.routing.Route
+import io.ktor.server.application.*
+import io.ktor.server.locations.*
+import io.ktor.server.locations.put
+import io.ktor.server.plugins.*
+import io.ktor.server.response.*
+import io.ktor.server.routing.*
 
 @Location("/pumps")
 object Pumps
