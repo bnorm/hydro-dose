@@ -21,10 +21,12 @@ object Sensors
 data class Sensor(
     val id: Int,
 ) {
+    @Location("/read")
     data class Read(
         val sensor: Sensor,
     )
 
+    @Location("/readings")
     data class Readings(
         val sensor: Sensor,
         val before: Instant = Clock.System.now(),

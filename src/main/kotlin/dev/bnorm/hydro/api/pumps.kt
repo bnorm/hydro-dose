@@ -18,6 +18,7 @@ object Pumps
 data class Pump(
     val id: Int,
 ) {
+    @Location("/dispense")
     data class Dispense(
         val pump: Pump,
         val amount: Int, // milliliters
