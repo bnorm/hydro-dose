@@ -12,7 +12,8 @@ import dev.bnorm.hydro.SensorService
 import dev.bnorm.hydro.api.chartsApi
 import dev.bnorm.hydro.api.pumpsApi
 import dev.bnorm.hydro.api.sensorsApi
-import dev.bnorm.hydro.client.ElevatedClient
+import dev.bnorm.hydro.client.elevated.ElevatedClient
+import dev.bnorm.hydro.client.elevated.model.devices.PumpDispenseArguments
 import dev.bnorm.hydro.db.Database
 import dev.bnorm.hydro.db.createDatabase
 import io.ktor.http.*
@@ -26,6 +27,7 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
@@ -103,6 +105,21 @@ fun Application.app() {
         chartService.doseActive()
     }
 
+    if (elevatedClient != null) {
+        scope.launch {
+            elevatedClient.authenticate()
+
+            elevatedClient.getActionQueue().collect {
+                when (it.args) {
+                    is PumpDispenseArguments -> {
+                        pumpService[it.args.pump]?.dispense(it.args.amount)
+                        elevatedClient.completeDeviceAction(it.id)
+                    }
+                }
+            }
+        }
+    }
+
     install(ContentNegotiation) {
         json()
     }
@@ -158,7 +175,7 @@ fun CoroutineScope.schedule(
         }
     }
 
-    launch {
+    launch(start = if (immediate) CoroutineStart.UNDISPATCHED else CoroutineStart.DEFAULT) {
         val start = Clock.System.now()
         val truncated = (start.toEpochMilliseconds() / frequency.inWholeMilliseconds) * frequency.inWholeMilliseconds
         var next = Instant.fromEpochMilliseconds(truncated)

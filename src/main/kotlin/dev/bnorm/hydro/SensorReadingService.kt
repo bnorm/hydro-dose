@@ -1,6 +1,6 @@
 package dev.bnorm.hydro
 
-import dev.bnorm.hydro.client.ElevatedClient
+import dev.bnorm.hydro.client.elevated.ElevatedClient
 import dev.bnorm.hydro.db.SensorReading
 import dev.bnorm.hydro.db.SensorReadingQueries
 import kotlinx.coroutines.async
