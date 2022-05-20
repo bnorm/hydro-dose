@@ -25,25 +25,17 @@ import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.server.plugins.dataconversion.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
-import kotlinx.datetime.Clock
-import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.Instant
-import kotlinx.datetime.until
-import org.apache.logging.log4j.LogManager
 import java.io.ByteArrayOutputStream
 import java.io.PrintStream
 import java.nio.file.Files
 import java.nio.file.Paths
-import kotlin.time.Duration
 import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.ExperimentalTime
@@ -56,7 +48,10 @@ data class DoseChart(
 
 @Suppress("unused") // application.conf
 fun Application.app() {
-    val scope = CoroutineScope(context = SupervisorJob() + Dispatchers.Default)
+    val loggingExceptionHandler = CoroutineExceptionHandler { _, t ->
+        log.warn("Unhandled exception in worker scope", t)
+    }
+    val scope = CoroutineScope(context = SupervisorJob() + Dispatchers.Default + loggingExceptionHandler)
     environment.monitor.subscribe(ApplicationStopping) { scope.cancel() }
 
     val elevatedClient: ElevatedClient?
@@ -107,15 +102,20 @@ fun Application.app() {
 
     if (elevatedClient != null) {
         scope.launch {
-            elevatedClient.authenticate()
+            try {
+                elevatedClient.authenticate()
 
-            elevatedClient.getActionQueue().collect {
-                when (it.args) {
-                    is PumpDispenseArguments -> {
-                        pumpService[it.args.pump]?.dispense(it.args.amount)
-                        elevatedClient.completeDeviceAction(it.id)
+                elevatedClient.getActionQueue().collect {
+                    when (it.args) {
+                        is PumpDispenseArguments -> {
+                            pumpService[it.args.pump]?.dispense(it.args.amount)
+                            elevatedClient.completeDeviceAction(it.id)
+                        }
                     }
                 }
+            } catch (t: Throwable) {
+                log.warn("Unhandled exception in websocket connection", t)
+                throw t
             }
         }
     }
@@ -153,43 +153,6 @@ fun Application.app() {
                     call.respond(HttpStatusCode.NoContent)
                 }
             }
-        }
-    }
-}
-
-fun CoroutineScope.schedule(
-    name: String,
-    frequency: Duration,
-    immediate: Boolean = false,
-    action: suspend () -> Unit,
-) {
-    val log = LogManager.getLogger("dev.bnorm.hydro.scheduler")
-
-    suspend fun perform(timestamp: Instant) {
-        try {
-            log.debug("Performing scheduled action {}", name)
-            action()
-        } catch (t: Throwable) {
-            if (t is CancellationException) throw t
-            log.warn("Unable to perform scheduled action {} at {}", name, timestamp, t)
-        }
-    }
-
-    launch(start = if (immediate) CoroutineStart.UNDISPATCHED else CoroutineStart.DEFAULT) {
-        val start = Clock.System.now()
-        val truncated = (start.toEpochMilliseconds() / frequency.inWholeMilliseconds) * frequency.inWholeMilliseconds
-        var next = Instant.fromEpochMilliseconds(truncated)
-
-        if (immediate) {
-            perform(start)
-        }
-
-        while (isActive) {
-            val now = Clock.System.now()
-            while (next < now) next += frequency
-            log.debug("Waiting until {} to perform scheduled action {}", next, name)
-            delay(now.until(next, DateTimeUnit.MILLISECOND))
-            perform(next)
         }
     }
 }

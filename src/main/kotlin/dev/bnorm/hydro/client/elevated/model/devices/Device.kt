@@ -9,5 +9,6 @@ data class Device(
     val id: DeviceId,
     val name: String,
     val sensors: List<Sensor>,
+    val status: String,
     val lastActionTime: Instant? = null,
 )

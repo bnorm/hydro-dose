@@ -24,7 +24,6 @@ ktor-server-content-negotiation = { module = "io.ktor:ktor-server-content-negoti
 ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktor" }
 ktor-client-okhttp = { module = "io.ktor:ktor-client-okhttp", version.ref = "ktor" }
 ktor-client-content-negotiation = { module = "io.ktor:ktor-client-content-negotiation", version.ref = "ktor" }
-ktor-client-websockets = { module = "io.ktor:ktor-client-websockets", version.ref = "ktor" }
 
 # Ktor Common
 ktor-serialization-kotlinx-json = { module = "io.ktor:ktor-serialization-kotlinx-json", version.ref = "ktor" }
@@ -57,7 +56,6 @@ ktorclient = [
     "ktor-client-okhttp",
     "ktor-client-content-negotiation",
     "ktor-serialization-kotlinx-json",
-    "ktor-client-websockets",
 ]
 sqldelight = ["sqldelight-driver", "sqldelight-coroutines"]
 pi4j = ["pi4j-core", "pi4j-plugin-raspberrypi", "pi4j-plugin-pigpio", "pi4j-plugin-linuxfs"]
