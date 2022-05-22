@@ -40,6 +40,7 @@ import kotlinx.coroutines.selects.select
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
+import kotlinx.serialization.json.Json
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response
@@ -69,7 +70,9 @@ class ElevatedClient {
 
     private var authorization: String? = null
 
-    private val json = DefaultJson
+    private val json = Json(DefaultJson) {
+        ignoreUnknownKeys = true
+    }
 
     private val okHttpClient = OkHttpClient.Builder()
         .pingInterval(Duration.ofSeconds(30))
